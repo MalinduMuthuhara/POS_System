@@ -31,3 +31,21 @@ class Order{
     set total(total){this.#total=total;}
 
 }
+//----------------------Add Order-------------------------
+const addOrderData = (orderId,customerId,date,items,total) =>{
+    let new_order = new Order(orderId,customerId,date,items,total);
+
+    order_db.push(new_order);
+
+    //--------Reduce Item Qty---------
+    items.forEach(orderItem=>{
+        let itemObj = item_db.find(i => i.itemId === orderItem.itemId);
+
+        if(itemObj){
+            itemObj.quantity = itemObj.quantity - orderItem.qty;
+
+        }
+    });
+
+    return true;
+}
