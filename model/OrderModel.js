@@ -49,3 +49,19 @@ const addOrderData = (orderId,customerId,date,items,total) =>{
 
     return true;
 }
+
+//------------------------Get All Orders(History)------------------------------------
+const getAllOrders=()=>{
+    return order_db;
+}
+
+//---------------------Get Order by order_id--------------------------------
+const getOrderById = (orderId)=>{
+    return order_db.find(order => order.orderId === orderId);
+}
+
+export {
+    addOrderData,
+    getAllOrders,
+    getOrderById
+};
