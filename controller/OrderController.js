@@ -42,3 +42,13 @@ export function loadOrderDetails() {
     $('#order_id').val("ORD-" + nextId.toString().padStart(3, '0'));
 }
 
+// ------------------------- Item Selection Change Event ------------------------------
+$('#order_item_select').on('change', function() {
+    let selectedId = $(this).val();
+    let item = item_db.find(i => i.itemId == selectedId);
+    if(item) {
+        $('#order_item_price').val(item.unitPrice);
+        $('#order_qty').attr("placeholder", "Available: " + item.quantity);
+    }
+});
+
