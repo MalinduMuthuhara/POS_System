@@ -83,3 +83,30 @@ $('#btn_add_cart').on('click', function () {
     showAlert("Item added to cart", "info");
 });
 
+// ------------------------- Update Total ------------------------------
+function updateTotal() {
+    let total = 0;
+    cart.forEach(item => total += item.total);
+    $('#total_display').text(total.toFixed(2));
+}
+
+// ------------------------- Purchase Order ------------------------------
+$('#btn_purchase').on('click', function () {
+    let orderId = $('#order_id').val();
+    let customerId = $('#order_cust_select').val();
+    let date = new Date().toISOString().split('T')[0];
+    let total = parseFloat($('#total_display').text());
+
+    if (!customerId || cart.length === 0) {
+        showAlert("Please select a customer and items!", "danger");
+        return;
+    }
+
+    if (addOrderData(orderId, customerId, date, cart, total)) {
+        showAlert("Order Placed Successfully!", "success");
+        cart = [];
+        updateTotal();
+        loadOrderDetails();
+        loadOrderHistory();
+    }
+});
