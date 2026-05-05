@@ -1,0 +1,37 @@
+body {
+    padding-top: 70px;
+}
+
+/*Navigation-Bar-Style*/
+.custom-navbar {
+    z-index: 1050 !important;
+}
+
+#sidebar {
+    width: 250px;
+    height: 100vh;
+    z-index: 1000;
+}
+
+.content {
+    margin-left: 260px;
+}
+
+/* Alert-Container-Style */
+#alert_container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 2000;
+    min-width: 300px;
+}
+
+/*Mobile res*/
+@media (max-width: 768px) {
+    .content {
+        margin-left: 0;
+    }
+    #sidebar {
+        display: none;
+    }
+}
