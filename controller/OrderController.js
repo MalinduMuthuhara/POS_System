@@ -110,3 +110,22 @@ $('#btn_purchase').on('click', function () {
         loadOrderHistory();
     }
 });
+// ------------------------- Load Order History ------------------------------
+
+export function loadOrderHistory() {
+    let allOrders = getAllOrders();
+    let tableBody = $('#order_history_table_body');
+    tableBody.empty();
+
+    allOrders.forEach(order => {
+        tableBody.append(`<tr>
+            <td>${order.orderId}</td>
+            <td>${order.customerId}</td>
+            <td>${order.date}</td>
+            <td>${order.total.toFixed(2)}</td>
+        </tr>`);
+    });
+}
+$('#nav_order_history').on('click', function() {
+    loadOrderHistory();
+});
