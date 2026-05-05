@@ -1,12 +1,29 @@
-import { customer_db } from '../db/db.js';
+import { addCustomerData, updateCustomerData, deleteCustomerData, getAllCustomerData } from '../model/CustomerModel.js';
 import { check_phone } from '../utils/regex_utils.js';
+import { loadOrderDetails } from './OrderController.js';
 
-//------------------------- Load Customer Table ------------------------------
+// ------------------------- Alert Function ------------------------------
+function showAlert(message, type) {
+    const alertPlaceholder = $('#alert_container');
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show shadow" role="alert">
+           <div>${message}</div>
+           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>`;
+    alertPlaceholder.append(alertHtml);
+
+    setTimeout(() => {
+        $(".alert").fadeOut('slow', function() { $(this).remove(); });
+    }, 3000);
+}
+
+// ------------------------- Load Table ------------------------------
 const loadCustomerTbl = () => {
     $('#customer_table_body').empty();
+    let customers = getAllCustomerData();
 
-    customer_db.map((item, index) => {
-        let new_row = `<tr data-index="${index}">
+    customers.forEach((item) => {
+        let new_row = `<tr>
             <td>${item.id}</td>
             <td>${item.name}</td>
             <td>${item.phone}</td>
@@ -16,7 +33,10 @@ const loadCustomerTbl = () => {
     });
 }
 
-//------------------------- Clean Customer Form ------------------------------
+$(document).ready(() => {
+    loadCustomerTbl();
+});
+
 const cleanCustomerForm = () => {
     $('#cust_id').val("");
     $('#cust_name').val("");
@@ -24,123 +44,71 @@ const cleanCustomerForm = () => {
     $('#cust_address').val("");
 }
 
-//------------------------- Click on Customer Row ------------------------------
+//-------------------Table row click event---------------------
 $('#customer_table_body').on('click', 'tr', function () {
-    let customer_obj = customer_db[$(this).index()];
+    let id = $(this).find('td:first').text();
+    let customers = getAllCustomerData();
+    let customer = customers.find(c => c.id == id);
 
-    $('#cust_id').val(customer_obj.id);
-    $('#cust_name').val(customer_obj.name);
-    $('#cust_phone').val(customer_obj.phone);
-    $('#cust_address').val(customer_obj.address);
+    if (customer) {
+        $('#cust_id').val(customer.id);
+        $('#cust_name').val(customer.name);
+        $('#cust_phone').val(customer.phone);
+        $('#cust_address').val(customer.address);
+    }
 });
 
-//------------------------- Start: Customer Add ------------------------------
-const addCustomerData = (id, name, phone, address) => {
-    let new_customer = {
-        id: id,
-        name: name,
-        phone: phone,
-        address: address
-    };
-
-    customer_db.push(new_customer);
-    cleanCustomerForm();
-
-    Swal.fire({ icon: "success", title: "Customer Saved Successfully!" });
-    loadCustomerTbl();
-}
-
+// ------------------------- Customer Save ------------------------------
 $('#btn_save_customer').on('click', function () {
     let id = $('#cust_id').val();
     let name = $('#cust_name').val();
     let phone = $('#cust_phone').val();
     let address = $('#cust_address').val();
 
-    // Validation logic with Regex
-    if (id == "") {
-        Swal.fire({ icon: "error", title: "Invalid Customer ID!" });
-    } else if (customer_db.find(item => item.id == id)) {
-        Swal.fire({ icon: "error", title: "Customer ID Already Exists!" });
-    } else if (name == "") {
-        Swal.fire({ icon: "error", title: "Invalid Customer Name!" });
-    } else if (!check_phone(phone)) {//regex eka
-        Swal.fire({
-            icon: "error",
-            title: "Invalid Phone Number!",
-            text: "Please Enter a Valid Phone Number (e.g., 0712345678)"
-        });
+    if (id === "") {
+        showAlert("Invalid Customer ID!", "danger");
+    } else if (name === "") {
+        showAlert("Invalid Customer Name!", "danger");
+    } else if (!check_phone(phone)) {
+        showAlert("Invalid Phone Number!", "warning");
     } else {
         addCustomerData(id, name, phone, address);
+        loadCustomerTbl();
+        loadOrderDetails();
+        cleanCustomerForm();
+        showAlert("Customer Saved Successfully!", "success");
     }
 });
 
-//------------------------- Start: Customer Update ------------------------------
-const updateCustomerData = (id, name, phone, address) => {
-    let obj = customer_db.find(item => item.id == id);
-
-    if (obj) {
-        obj.name = name;
-        obj.phone = phone;
-        obj.address = address;
-
-        cleanCustomerForm();
-        Swal.fire({ icon: "success", title: "Customer Updated Successfully!" });
-        loadCustomerTbl();
-    }
-}
-
+// ------------------------- Customer Update ------------------------------
 $('#btn_update_customer').on('click', function () {
     let id = $('#cust_id').val();
     let name = $('#cust_name').val();
     let phone = $('#cust_phone').val();
     let address = $('#cust_address').val();
 
-    if (id == "") {
-        Swal.fire({ icon: "error", title: "Please Select a Customer to Update!" });
-    } else if (name == "") {
-        Swal.fire({ icon: "error", title: "Invalid Name!" });
-    } else if (!check_phone(phone)) {//REGEX CHECKING KERIMA
-        Swal.fire({
-            icon: "error",
-            title: "Invalid Phone Number!",
-            text: "Please check the phone number again."
-        });
+    if (updateCustomerData(id, name, phone, address)) {
+        loadCustomerTbl();
+        loadOrderDetails();
+        cleanCustomerForm();
+        showAlert("Customer Updated Successfully!", "success");
     } else {
-        updateCustomerData(id, name, phone, address);
+        showAlert("Customer Not Found!", "danger");
     }
 });
 
-//------------------------- Start: Customer Delete ------------------------------
-const deleteCustomerData = (id) => {
-    let index = customer_db.findIndex(item => item.id == id);
-
-    if (index !== -1) {
-        customer_db.splice(index, 1);
-        cleanCustomerForm();
-        Swal.fire({ icon: "success", title: "Customer Deleted Successfully!" });
-        loadCustomerTbl();
-    }
-}
-
+// ------------------------- Customer Delete ------------------------------
 $('#btn_delete_customer').on('click', function () {
     let id = $('#cust_id').val();
 
-    if (id == "") {
-        Swal.fire({ icon: "error", title: "Please Select a Customer to Delete!" });
-        return;
-    }
-
-    Swal.fire({
-        title: "Are You Sure?",
-        text: "This Action Will Remove The Customer Record !",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, Delete It !"
-    }).then((result) => {
-        if (result.isConfirmed) {
-            deleteCustomerData(id);
+    if (confirm("Are you sure you want to delete this customer?")) {
+        if (deleteCustomerData(id)) {
+            loadCustomerTbl();
+            loadOrderDetails();
+            cleanCustomerForm();
+            showAlert("Customer Deleted Successfully!", "success");
+        } else {
+            showAlert("Please select a customer first!", "warning");
         }
-    });
+    }
 });
