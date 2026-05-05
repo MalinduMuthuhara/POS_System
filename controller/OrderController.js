@@ -52,3 +52,34 @@ $('#order_item_select').on('change', function() {
     }
 });
 
+// ------------------------- Add to Cart ------------------------------
+$('#btn_add_cart').on('click', function () {
+    let itemId = $('#order_item_select').val();
+    let qty = parseInt($('#order_qty').val());
+    let price = parseFloat($('#order_item_price').val());
+
+    if (!itemId || isNaN(qty) || qty <= 0) {
+        showAlert("Please enter a valid quantity!", "warning");
+        return;
+    }
+
+    let item = item_db.find(i => i.itemId == itemId);
+    if (qty > item.quantity) {
+        showAlert("Insufficient stock! Available: " + item.quantity, "danger");
+        return;
+    }
+
+    let cartItem = {
+        itemId: itemId,
+        name: item.itemName,
+        unitPrice: price,
+        qty: qty,
+        total: price * qty
+    };
+
+    cart.push(cartItem);
+    updateTotal();
+    $('#order_qty').val("");
+    showAlert("Item added to cart", "info");
+});
+
